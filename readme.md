@@ -107,13 +107,37 @@ mlty --pkg <package-name> [external-flags]
 Common usage examples:
 
 ```bash
-mlty --pkg <package-name> -D
+mlty --pkg shadcn@latest init
 ```
 
 Install as a development dependency
 
 ```bash
 mlty --pkg <package-name> -D
+```
+
+Install globally
+
+```bash
+mlty --pkg <package-name> -g
+```
+
+Install an exact version
+
+```bash
+mlty --pkg <package-name> -E
+```
+
+Save to dependencies
+
+```bash
+mlty --pkg <package-name> --save
+```
+
+Force install
+
+```bash
+mlty --pkg <package-name> --force
 ```
 
 ### Remove a Package
