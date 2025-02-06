@@ -326,15 +326,7 @@ install_mlty() {
     TMP_FILE=$(mktemp)
     curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$TMP_FILE"
 
-    # Check if running with sudo (except on Windows)
     OS_TYPE=$(get_os)
-    if [[ "$OS_TYPE" != "windows" ]]; then
-        sudo -v || {
-            echo "Error: Installation requires sudo privileges"
-            rm -f "$TMP_FILE"
-            exit 1
-        }
-    fi
 
     cat << EOF
                                                                            
@@ -374,16 +366,16 @@ EOF
 
     case "$OS_TYPE" in
         "debian"|"redhat"|"arch"|"linux")
-            (sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+            cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
             ;;
         "macos")
-            (sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+            cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
             ;;
         "windows")
             # For Windows, we'll install to the user's home directory
             WIN_INSTALL_DIR="$HOME/mlty"
             mkdir -p "$WIN_INSTALL_DIR"
-            (cp "$TMP_FILE" "$WIN_INSTALL_DIR/mlty" && chmod +x "$WIN_INSTALL_DIR/mlty") &
+            cp "$TMP_FILE" "$WIN_INSTALL_DIR/mlty" && chmod +x "$WIN_INSTALL_DIR/mlty" &
             echo "Please add $WIN_INSTALL_DIR to your PATH"
             ;;
         *)
@@ -462,27 +454,35 @@ fi
 
 # If install flag is provided, install mlty
 if [[ $1 == "--install" ]]; then
+    if [[ "$EUID" -ne 0 ]]; then
+        echo "Error: Installation requires root privileges"
+        echo "Please run with sudo"
+        exit 1
+    fi
     install_mlty
     exit 0
 fi
 
 # If no arguments provided and script is being piped, install mlty
 if [[ -z $1 ]] && [[ ! -t 0 ]]; then
+    if [[ "$EUID" -ne 0 ]]; then
+        echo "Error: Installation requires root privileges"
+        echo "Please run with sudo"
+        exit 1
+    fi
     install_mlty
     exit 0
 fi
 
 # If the script is run with the --uninstall flag, perform uninstallation
 if [[ $1 == "--uninstall" ]]; then
-    OS_TYPE=$(get_os)
-    
-    # Check if running with sudo (except on Windows)
-    if [[ "$OS_TYPE" != "windows" ]]; then
-        sudo -v || {
-            echo "Error: Uninstallation requires sudo privileges"
-            exit 1
-        }
+    if [[ "$EUID" -ne 0 ]]; then
+        echo "Error: Uninstallation requires root privileges"
+        echo "Please run with sudo"
+        exit 1
     fi
+
+    OS_TYPE=$(get_os)
 
     # Ask for confirmation
     read -p "Are you sure you want to uninstall mlty? [y/N] " -n 1 -r
@@ -495,7 +495,7 @@ if [[ $1 == "--uninstall" ]]; then
     echo "Uninstalling mlty ..."
     case "$OS_TYPE" in
         "debian"|"redhat"|"arch"|"linux"|"macos")
-            sudo rm -f /usr/local/bin/mlty &
+            rm -f /usr/local/bin/mlty &
             ;;
         "windows")
             rm -rf "$HOME/mlty" &
