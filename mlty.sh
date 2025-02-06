@@ -205,9 +205,19 @@ install_package() {
         echo
         echo "Using bun to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            bun add "${package_name}" "${external_flag}"
+            if ! bun add "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         else
-            bun add "${package_name}"
+            if ! bun add "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         fi
     elif [[ -f "pnpm-lock.yaml" ]]; then
         echo "📦 Project: $project_name"
@@ -216,9 +226,19 @@ install_package() {
         echo
         echo "Using pnpm to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            pnpm add "${package_name}" "${external_flag}"
+            if ! pnpm add "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         else
-            pnpm add "${package_name}"
+            if ! pnpm add "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         fi
     elif [[ -f "yarn.lock" ]]; then
         echo "📦 Project: $project_name"
@@ -227,9 +247,19 @@ install_package() {
         echo
         echo "Using yarn to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            yarn add "${package_name}" "${external_flag}"
+            if ! yarn add "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         else
-            yarn add "${package_name}"
+            if ! yarn add "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
         fi
     elif [[ -f "package-lock.json" ]] || [[ ! -f "bun.lockb" && ! -f "pnpm-lock.yaml" && ! -f "yarn.lock" ]]; then
         echo "📦 Project: $project_name"
@@ -241,21 +271,51 @@ install_package() {
             echo "Attempting to run with npx first..."
             if [[ -n "$external_flag" ]]; then
                 if ! npx "${package_name}" "${external_flag}"; then
+                    local npx_status=$?
+                    if [[ $npx_status -eq 130 ]]; then
+                        echo "You cancelled the command"
+                        exit 1
+                    fi
                     echo "npx failed, falling back to npm install..."
-                    npm install "${package_name}" "${external_flag}"
+                    if ! npm install "${package_name}" "${external_flag}"; then
+                        if [[ $? -eq 130 ]]; then
+                            echo "You cancelled the command"
+                        fi
+                        exit 1
+                    fi
                 fi
             else
                 if ! npx "${package_name}"; then
+                    local npx_status=$?
+                    if [[ $npx_status -eq 130 ]]; then
+                        echo "You cancelled the command"
+                        exit 1
+                    fi
                     echo "npx failed, falling back to npm install..."
-                    npm install "${package_name}"
+                    if ! npm install "${package_name}"; then
+                        if [[ $? -eq 130 ]]; then
+                            echo "You cancelled the command"
+                        fi
+                        exit 1
+                    fi
                 fi
             fi
         else
             echo "npx not found, using npm to install $package_name..."
             if [[ -n "$external_flag" ]]; then
-                npm install "${package_name}" "${external_flag}"
+                if ! npm install "${package_name}" "${external_flag}"; then
+                    if [[ $? -eq 130 ]]; then
+                        echo "You cancelled the command"
+                    fi
+                    exit 1
+                fi
             else
-                npm install "${package_name}"
+                if ! npm install "${package_name}"; then
+                    if [[ $? -eq 130 ]]; then
+                        echo "You cancelled the command"
+                    fi
+                    exit 1
+                fi
             fi
         fi
     fi
