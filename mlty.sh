@@ -12,6 +12,7 @@
 #   To run dev script: ./mlty --dev
 #   To install package manager: ./mlty --install-pkg-manager
 #   To install dependencies: ./mlty --install-deps
+#   To update mlty: ./mlty --update
 #   To run after installation: mlty
 
 # Show help message
@@ -26,6 +27,7 @@ show_help() {
     echo "  ./mlty --dev        Run dev script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
+    echo "  ./mlty --update     Update mlty to latest version"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -402,6 +404,60 @@ if [[ $1 == "--dev" ]]; then
     exit 0
 fi
 
+# If update flag is provided, update mlty
+if [[ $1 == "--update" ]]; then
+    OS_TYPE=$(get_os)
+    
+    # Check if running with sudo (except on Windows)
+    if [[ "$OS_TYPE" != "windows" ]]; then
+        sudo -v || {
+            echo "Error: Update requires sudo privileges"
+            exit 1
+        }
+    fi
+
+    echo "Checking for mlty updates..."
+    
+    # Create temporary directory
+    TMP_DIR=$(mktemp -d)
+    cd "$TMP_DIR"
+
+    # Download latest version
+    if command -v curl >/dev/null 2>&1; then
+        curl -O https://raw.githubusercontent.com/curlback/mlty-cli/main/mlty.sh &
+    elif command -v wget >/dev/null 2>&1; then
+        wget https://raw.githubusercontent.com/curlback/mlty-cli/main/mlty.sh &
+    else
+        echo "Error: curl or wget is required for updates"
+        rm -rf "$TMP_DIR"
+        exit 1
+    fi
+    
+    spinner $!
+
+    if [[ -f "mlty.sh" ]]; then
+        # Compare versions (you may want to implement version comparison logic)
+        echo "Installing update..."
+        case "$OS_TYPE" in
+            "debian"|"redhat"|"arch"|"linux"|"macos")
+                (sudo cp "mlty.sh" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+                ;;
+            "windows")
+                (cp "mlty.sh" "$HOME/mlty/mlty" && chmod +x "$HOME/mlty/mlty") &
+                ;;
+        esac
+        spinner $!
+        echo "Update complete!"
+    else
+        echo "No updates available."
+    fi
+
+    # Cleanup
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    exit 0
+fi
+
 # If the script is run with the --install flag, perform installation.
 if [[ $1 == "--install" ]]; then
     # Check if running with sudo (except on Windows)
@@ -482,6 +538,7 @@ EOF
     echo "  mlty --dev         Run dev script using detected package manager"
     echo "  mlty --install-pkg-manager Install detected package manager"
     echo "  mlty --install-deps Install all project dependencies"
+    echo "  mlty --update      Update mlty to latest version"
     exit 0
 fi
 
