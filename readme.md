@@ -1,4 +1,4 @@
-# mlty.sh
+# mlty
 
 A versatile command-line tool that combines system utilities with package management capabilities and functionality such as package management detection and installation.
 
