@@ -15,7 +15,7 @@
 #   To run after installation: mlty
 #
 # Direct installation:
-#   curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash -s -- --install
 
 # Show help message
 show_help() {
@@ -32,7 +32,7 @@ show_help() {
     echo "  mlty               Display message of the day"
     echo
     echo "Direct installation:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash"
+    echo "  curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash -s -- --install"
     exit 0
 }
 
