@@ -69,3 +69,66 @@ A versatile command-line tool that combines system utilities with package manage
 ## Usage
 
 ### Display the Message of the Day
+
+```bash
+mlty
+```
+
+### Show Help
+
+```bash
+mlty --help
+```
+
+### Uninstall mlty
+
+```bash
+mlty --uninstall
+```
+
+### Check Package Manager and Project Stack
+
+```bash
+mlty --check
+```
+
+### Install a Package
+
+```bash
+mlty --pkg <package-name>
+```
+
+### Remove a Package
+
+```bash
+mlty --remove <package-name>
+```
+
+## Supported Platforms
+
+`mlty` supports the following operating systems:
+
+- Linux (Debian, RedHat, Arch, and others)
+- macOS
+- Windows (manual PATH setup required)
+
+## Package Manager Detection
+
+When running `mlty --check`, it will detect the package manager based on the presence of lock files:
+
+- `bun.lockb` → bun
+- `pnpm-lock.yaml` → pnpm
+- `yarn.lock` → yarn
+- `package-lock.json` → npm
+
+## Uninstallation
+
+To remove `mlty` from your system:
+
+```bash
+mlty --uninstall
+```
+
+## License
+
+This project is licensed under the MIT License.
