@@ -81,16 +81,41 @@ if [[ $1 == "--install" ]]; then
         }
     fi
 
-    echo "System Information:"
+    cat << EOF
+                                                                           
+                        lllllll         tttt                               
+                        l:::::l      ttt:::t                               
+                        l:::::l      t:::::t                               
+                        l:::::l      t:::::t                               
+   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
+ mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
+m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
+m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
+m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
+m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
+m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
+m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
+m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
+m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
+m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
+mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
+                                                        y:::::y            
+                                                       y:::::y             
+                                                      y:::::y              
+                                                     y:::::y               
+                                                    yyyyyyy                
+EOF
+    echo
+
+    echo -e "\e[1;34mSystem Information:"
     echo "Date: $(date)"
     echo "OS: $OS_TYPE"
-    echo "System: $(uname -srm)"
+    echo -e "System: $(uname -srm)\e[0m"
     echo
 
     echo -e "\e[1;36mInstalling mlty...\e[0m"
-    echo
-    echo -e "\e[3mHere's a joke while we set things up:\e[0m"
-    echo -e "\e[3m$(get_random_joke)\e[0m"
+    echo "Here's a joke while we install:"
+    get_random_joke
     echo
 
     case "$OS_TYPE" in
