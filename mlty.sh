@@ -3,32 +3,36 @@
 # mlty: A self-installing CLI tool that displays a message of the day.
 #
 # Usage:
-#   To install: curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash
-#   To uninstall: mlty --uninstall
-#   To show help: mlty --help
-#   To check package manager: mlty --check
-#   To install package: mlty --pkg <package-name>
-#   To remove package: mlty --remove <package-name>
-#   To run dev script: mlty --dev
-#   To install package manager: mlty --install-pkg-manager
-#   To install dependencies: mlty --install-deps
-#   To install mlty: mlty --install
+#   To install: ./mlty --install
+#   To uninstall: ./mlty --uninstall 
+#   To show help: ./mlty --help
+#   To check package manager: ./mlty --check
+#   To install package: ./mlty --pkg <package-name>
+#   To remove package: ./mlty --remove <package-name>
+#   To run dev script: ./mlty --dev
+#   To install package manager: ./mlty --install-pkg-manager
+#   To install dependencies: ./mlty --install-deps
 #   To run after installation: mlty
+#
+# Direct installation:
+#   curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash
 
 # Show help message
 show_help() {
     echo "Usage:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash    Install mlty"
-    echo "  mlty --install    Install mlty"
-    echo "  mlty --uninstall  Remove mlty from system"
-    echo "  mlty --help       Show this help message"
-    echo "  mlty --check      Check project info in current directory"
-    echo "  mlty --pkg <pkg>  Install package using detected package manager"
-    echo "  mlty --remove <pkg> Remove package using detected package manager"
-    echo "  mlty --dev        Run dev script using detected package manager"
-    echo "  mlty --install-pkg-manager Install detected package manager"
-    echo "  mlty --install-deps Install all project dependencies"
+    echo "  ./mlty --install    Install mlty to system"
+    echo "  ./mlty --uninstall  Remove mlty from system"
+    echo "  ./mlty --help       Show this help message"
+    echo "  ./mlty --check      Check project info in current directory"
+    echo "  ./mlty --pkg <pkg>  Install package using detected package manager"
+    echo "  ./mlty --remove <pkg> Remove package using detected package manager"
+    echo "  ./mlty --dev        Run dev script using detected package manager"
+    echo "  ./mlty --install-pkg-manager Install detected package manager"
+    echo "  ./mlty --install-deps Install all project dependencies"
     echo "  mlty               Display message of the day"
+    echo
+    echo "Direct installation:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash"
     exit 0
 }
 
@@ -320,95 +324,6 @@ run_dev() {
     fi
 }
 
-# Install mlty
-install_mlty() {
-    # Create temporary file for the script
-    TMP_FILE=$(mktemp)
-    curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$TMP_FILE"
-
-    OS_TYPE=$(get_os)
-
-    cat << EOF
-                                                                           
-                        lllllll         tttt                               
-                        l:::::l      ttt:::t                               
-                        l:::::l      t:::::t                               
-                        l:::::l      t:::::t                               
-   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
- mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
-m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
-m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
-m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
-m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
-m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
-m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
-m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
-m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
-m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
-mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
-                                                        y:::::y            
-                                                       y:::::y             
-                                                      y:::::y              
-                                                     y:::::y               
-                                                    yyyyyyy                
-EOF
-    echo
-
-    echo "System Information:"
-    echo "Date: $(date)"
-    echo "OS: $OS_TYPE"
-    echo
-
-    echo -e "\e[1;36mInstalling mlty...\e[0m"
-    echo "Here's a joke while we install:"
-    get_random_joke
-    echo
-
-    case "$OS_TYPE" in
-        "debian"|"redhat"|"arch"|"linux")
-            if [[ "$EUID" -ne 0 ]]; then
-                sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty &
-            else
-                cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
-            fi
-            ;;
-        "macos")
-            if [[ "$EUID" -ne 0 ]]; then
-                sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty &
-            else
-                cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
-            fi
-            ;;
-        "windows")
-            # For Windows, we'll install to the user's home directory
-            WIN_INSTALL_DIR="$HOME/mlty"
-            mkdir -p "$WIN_INSTALL_DIR"
-            cp "$TMP_FILE" "$WIN_INSTALL_DIR/mlty" && chmod +x "$WIN_INSTALL_DIR/mlty" &
-            echo "Please add $WIN_INSTALL_DIR to your PATH"
-            ;;
-        *)
-            echo "Unsupported operating system"
-            rm -f "$TMP_FILE"
-            exit 1
-            ;;
-    esac
-
-    spinner $!
-    rm -f "$TMP_FILE"
-    echo
-    echo
-    echo "Installation complete! You can now use the following commands:"
-    echo "  mlty               Display message of the day"
-    echo "  mlty --help        Show help message"
-    echo "  mlty --uninstall   Remove mlty from system"
-    echo "  mlty --check       Check package manager in current directory"
-    echo "  mlty --pkg <pkg>   Install package using detected package manager"
-    echo "  mlty --remove <pkg> Remove package using detected package manager"
-    echo "  mlty --dev         Run dev script using detected package manager"
-    echo "  mlty --install-pkg-manager Install detected package manager"
-    echo "  mlty --install-deps Install all project dependencies"
-}
-
 # If help flag is provided, show help
 if [[ $1 == "--help" ]]; then
     show_help
@@ -460,21 +375,100 @@ if [[ $1 == "--dev" ]]; then
     exit 0
 fi
 
-# If install flag is provided, install mlty
+# If the script is run with the --install flag, perform installation.
 if [[ $1 == "--install" ]]; then
-    install_mlty
-    exit 0
-fi
+    # Check if running with sudo (except on Windows)
+    OS_TYPE=$(get_os)
+    if [[ "$OS_TYPE" != "windows" ]]; then
+        sudo -v || {
+            echo "Error: Installation requires sudo privileges"
+            exit 1
+        }
+    fi
 
-# If no arguments provided and script is being piped, install mlty
-if [[ -z $1 ]] && [[ ! -t 0 ]]; then
-    install_mlty
+    cat << EOF
+                                                                           
+                        lllllll         tttt                               
+                        l:::::l      ttt:::t                               
+                        l:::::l      t:::::t                               
+                        l:::::l      t:::::t                               
+   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
+ mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
+m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
+m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
+m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
+m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
+m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
+m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
+m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
+m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
+m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
+mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
+                                                        y:::::y            
+                                                       y:::::y             
+                                                      y:::::y              
+                                                     y:::::y               
+                                                    yyyyyyy                
+EOF
+    echo
+
+    echo "System Information:"
+    echo "Date: $(date)"
+    echo "OS: $OS_TYPE"
+    echo
+
+    echo -e "\e[1;36mInstalling mlty...\e[0m"
+    echo "Here's a joke while we install:"
+    get_random_joke
+    echo
+
+    case "$OS_TYPE" in
+        "debian"|"redhat"|"arch"|"linux")
+            (sudo cp "$0" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+            ;;
+        "macos")
+            (sudo cp "$0" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+            ;;
+        "windows")
+            # For Windows, we'll install to the user's home directory
+            WIN_INSTALL_DIR="$HOME/mlty"
+            mkdir -p "$WIN_INSTALL_DIR"
+            (cp "$0" "$WIN_INSTALL_DIR/mlty" && chmod +x "$WIN_INSTALL_DIR/mlty") &
+            echo "Please add $WIN_INSTALL_DIR to your PATH"
+            ;;
+        *)
+            echo "Unsupported operating system"
+            exit 1
+            ;;
+    esac
+    
+    spinner $!
+    echo
+    echo
+    echo "Installation complete! You can now use the following commands:"
+    echo "  mlty               Display message of the day"
+    echo "  mlty --help        Show help message"
+    echo "  mlty --uninstall   Remove mlty from system"
+    echo "  mlty --check       Check package manager in current directory"
+    echo "  mlty --pkg <pkg>   Install package using detected package manager"
+    echo "  mlty --remove <pkg> Remove package using detected package manager"
+    echo "  mlty --dev         Run dev script using detected package manager"
+    echo "  mlty --install-pkg-manager Install detected package manager"
+    echo "  mlty --install-deps Install all project dependencies"
     exit 0
 fi
 
 # If the script is run with the --uninstall flag, perform uninstallation
 if [[ $1 == "--uninstall" ]]; then
     OS_TYPE=$(get_os)
+    
+    # Check if running with sudo (except on Windows)
+    if [[ "$OS_TYPE" != "windows" ]]; then
+        sudo -v || {
+            echo "Error: Uninstallation requires sudo privileges"
+            exit 1
+        }
+    fi
 
     # Ask for confirmation
     read -p "Are you sure you want to uninstall mlty? [y/N] " -n 1 -r
@@ -487,11 +481,7 @@ if [[ $1 == "--uninstall" ]]; then
     echo "Uninstalling mlty ..."
     case "$OS_TYPE" in
         "debian"|"redhat"|"arch"|"linux"|"macos")
-            if [[ "$EUID" -ne 0 ]]; then
-                sudo rm -f /usr/local/bin/mlty &
-            else
-                rm -f /usr/local/bin/mlty &
-            fi
+            sudo rm -f /usr/local/bin/mlty &
             ;;
         "windows")
             rm -rf "$HOME/mlty" &
