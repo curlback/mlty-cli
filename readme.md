@@ -12,9 +12,10 @@ A versatile command-line tool that combines system utilities with package manage
 
 ### Linux (Debian, RedHat, Arch, and others)
 
-1. Download the `mlty` script:
+1. Clone the repository:
    ```bash
-   wget https://github.com/curlback/mlty-cli.git -O mlty
+   git clone https://github.com/curlback/mlty-cli.git
+   cd mlty-cli
    ```
 2. Make the script executable:
    ```bash
@@ -28,9 +29,10 @@ A versatile command-line tool that combines system utilities with package manage
 
 ### macOS
 
-1. Download the `mlty` script:
+1. Clone the repository:
    ```bash
-   curl -o mlty https://github.com/curlback/mlty-cli.git
+   git clone https://github.com/curlback/mlty-cli.git
+   cd mlty-cli
    ```
 2. Make the script executable:
    ```bash
@@ -44,7 +46,11 @@ A versatile command-line tool that combines system utilities with package manage
 
 ### Windows
 
-1. Download the `mlty` script manually from the repository.
+1. Clone the repository:
+   ```cmd
+   git clone https://github.com/curlback/mlty-cli.git
+   cd mlty-cli
+   ```
 2. Move the script to a directory of your choice (e.g., `C:\mlty`).
 3. Open Command Prompt and navigate to the directory:
    ```cmd
@@ -63,66 +69,3 @@ A versatile command-line tool that combines system utilities with package manage
 ## Usage
 
 ### Display the Message of the Day
-
-```bash
-mlty
-```
-
-### Show Help
-
-```bash
-mlty --help
-```
-
-### Uninstall mlty
-
-```bash
-mlty --uninstall
-```
-
-### Check Package Manager and Project Stack
-
-```bash
-mlty --check
-```
-
-### Install a Package
-
-```bash
-mlty --pkg <package-name>
-```
-
-### Remove a Package
-
-```bash
-mlty --remove <package-name>
-```
-
-## Supported Platforms
-
-`mlty` supports the following operating systems:
-
-- Linux (Debian, RedHat, Arch, and others)
-- macOS
-- Windows (manual PATH setup required)
-
-## Package Manager Detection
-
-When running `mlty --check`, it will detect the package manager based on the presence of lock files:
-
-- `bun.lockb` → bun
-- `pnpm-lock.yaml` → pnpm
-- `yarn.lock` → yarn
-- `package-lock.json` → npm
-
-## Uninstallation
-
-To remove `mlty` from your system:
-
-```bash
-mlty --uninstall
-```
-
-## License
-
-This project is licensed under the MIT License.
