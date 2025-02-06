@@ -107,10 +107,9 @@ mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y
 EOF
     echo
 
-    echo -e "\e[1;34mSystem Information:"
+    echo "System Information:"
     echo "Date: $(date)"
     echo "OS: $OS_TYPE"
-    echo -e "System: $(uname -srm)\e[0m"
     echo
 
     echo -e "\e[1;36mInstalling mlty...\e[0m"
