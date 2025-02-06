@@ -205,9 +205,9 @@ install_package() {
         echo
         echo "Using bun to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            bun add "$package_name" "$external_flag"
+            bun add "${package_name}" "${external_flag}"
         else
-            bun add "$package_name"
+            bun add "${package_name}"
         fi
     elif [[ -f "pnpm-lock.yaml" ]]; then
         echo "📦 Project: $project_name"
@@ -216,9 +216,9 @@ install_package() {
         echo
         echo "Using pnpm to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            pnpm add "$package_name" "$external_flag"
+            pnpm add "${package_name}" "${external_flag}"
         else
-            pnpm add "$package_name"
+            pnpm add "${package_name}"
         fi
     elif [[ -f "yarn.lock" ]]; then
         echo "📦 Project: $project_name"
@@ -227,9 +227,9 @@ install_package() {
         echo
         echo "Using yarn to install $package_name..."
         if [[ -n "$external_flag" ]]; then
-            yarn add "$package_name" "$external_flag"
+            yarn add "${package_name}" "${external_flag}"
         else
-            yarn add "$package_name"
+            yarn add "${package_name}"
         fi
     elif [[ -f "package-lock.json" ]] || [[ ! -f "bun.lockb" && ! -f "pnpm-lock.yaml" && ! -f "yarn.lock" ]]; then
         echo "📦 Project: $project_name"
@@ -240,22 +240,22 @@ install_package() {
         if command -v npx &>/dev/null; then
             echo "Attempting to run with npx first..."
             if [[ -n "$external_flag" ]]; then
-                if ! npx "$package_name" "$external_flag"; then
+                if ! npx "${package_name}" "${external_flag}"; then
                     echo "npx failed, falling back to npm install..."
-                    npm install "$package_name" "$external_flag"
+                    npm install "${package_name}" "${external_flag}"
                 fi
             else
-                if ! npx "$package_name"; then
+                if ! npx "${package_name}"; then
                     echo "npx failed, falling back to npm install..."
-                    npm install "$package_name"
+                    npm install "${package_name}"
                 fi
             fi
         else
             echo "npx not found, using npm to install $package_name..."
             if [[ -n "$external_flag" ]]; then
-                npm install "$package_name" "$external_flag"
+                npm install "${package_name}" "${external_flag}"
             else
-                npm install "$package_name"
+                npm install "${package_name}"
             fi
         fi
     fi
@@ -268,22 +268,45 @@ install_dependencies() {
         exit 1
     fi
 
+    # Get project name from package.json
+    local project_name=$(jq -r '.name' package.json)
+
     echo "Installing project dependencies..."
     
     # Detect package manager
     if [[ -f "bun.lockb" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: bun"
+        echo "🔖 Version: $(bun --version)"
+        echo
         echo "Using bun to install dependencies..."
         bun install
     elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: pnpm"
+        echo "🔖 Version: $(pnpm --version)"
+        echo
         echo "Using pnpm to install dependencies..."
         pnpm install
     elif [[ -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: yarn"
+        echo "🔖 Version: $(yarn --version)"
+        echo
         echo "Using yarn to install dependencies..."
         yarn install
     elif [[ -f "package-lock.json" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npm"
+        echo "🔖 Version: $(npm --version)"
+        echo
         echo "Using npm to install dependencies..."
         npm install
     else
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npm (default)"
+        echo "🔖 Version: $(npm --version)"
+        echo
         echo "No package manager detected. Using npm as default..."
         npm install
     fi
