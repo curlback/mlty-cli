@@ -291,8 +291,12 @@ run_dev() {
 
     # Check if dependencies are installed
     if ! check_deps_installed; then
-        echo "Dependencies not found. Installing dependencies first..."
-        install_dependencies
+        echo "Ouch! Couldn't find the deps, but don't worry, I am installing that now..."
+        echo "Here is a joke for you while you wait:"
+        get_random_joke
+        echo
+        install_dependencies &
+        spinner $!
     fi
 
     # Detect package manager
