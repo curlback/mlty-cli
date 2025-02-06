@@ -7,6 +7,8 @@
 #   To uninstall: ./mlty --uninstall 
 #   To show help: ./mlty --help
 #   To check package manager: ./mlty --check
+#   To install package: ./mlty --pkg <package-name>
+#   To remove package: ./mlty --remove <package-name>
 #   To run after installation: mlty
 
 # Show help message
@@ -16,6 +18,8 @@ show_help() {
     echo "  ./mlty --uninstall  Remove mlty from system"
     echo "  ./mlty --help       Show this help message"
     echo "  ./mlty --check      Check project info in current directory"
+    echo "  ./mlty --pkg <pkg>  Install package using detected package manager"
+    echo "  ./mlty --remove <pkg> Remove package using detected package manager"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -109,7 +113,62 @@ check_package_manager() {
     else
         echo "No package.json found in current directory"
     fi
-    exit 0
+}
+
+# Install package using detected package manager
+install_package() {
+    local package_name=$1
+    
+    if [[ ! -f "package.json" ]]; then
+        echo "Error: No package.json found in current directory"
+        exit 1
+    fi
+
+    # Detect package manager
+    if [[ -f "bun.lockb" ]]; then
+        echo "Using bun to install $package_name..."
+        bun add "$package_name"
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "Using pnpm to install $package_name..."
+        pnpm add "$package_name"
+    elif [[ -f "yarn.lock" ]]; then
+        echo "Using yarn to install $package_name..."
+        yarn add "$package_name"
+    elif [[ -f "package-lock.json" ]]; then
+        echo "Using npm to install $package_name..."
+        npm install "$package_name"
+    else
+        echo "No package manager detected. Using npm as default..."
+        npm install "$package_name"
+    fi
+}
+
+# Remove package using detected package manager
+remove_package() {
+    local package_name=$1
+    
+    if [[ ! -f "package.json" ]]; then
+        echo "Error: No package.json found in current directory"
+        exit 1
+    fi
+
+    # Detect package manager
+    if [[ -f "bun.lockb" ]]; then
+        echo "Using bun to remove $package_name..."
+        bun remove "$package_name"
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "Using pnpm to remove $package_name..."
+        pnpm remove "$package_name"
+    elif [[ -f "yarn.lock" ]]; then
+        echo "Using yarn to remove $package_name..."
+        yarn remove "$package_name"
+    elif [[ -f "package-lock.json" ]]; then
+        echo "Using npm to remove $package_name..."
+        npm uninstall "$package_name"
+    else
+        echo "No package manager detected. Using npm as default..."
+        npm uninstall "$package_name"
+    fi
 }
 
 # If help flag is provided, show help
@@ -120,6 +179,29 @@ fi
 # If check flag is provided, check package manager
 if [[ $1 == "--check" ]]; then
     check_package_manager
+    exit 0
+fi
+
+# If pkg flag is provided, install package
+if [[ $1 == "--pkg" ]]; then
+    if [[ -z $2 ]]; then
+        echo "Error: Package name is required"
+        echo "Usage: mlty --pkg <package-name>"
+        exit 1
+    fi
+    install_package "$2"
+    exit 0
+fi
+
+# If remove flag is provided, remove package
+if [[ $1 == "--remove" ]]; then
+    if [[ -z $2 ]]; then
+        echo "Error: Package name is required"
+        echo "Usage: mlty --remove <package-name>"
+        exit 1
+    fi
+    remove_package "$2"
+    exit 0
 fi
 
 # If the script is run with the --install flag, perform installation.
@@ -197,6 +279,8 @@ EOF
     echo "  mlty --help        Show help message"
     echo "  mlty --uninstall   Remove mlty from system"
     echo "  mlty --check       Check package manager in current directory"
+    echo "  mlty --pkg <pkg>   Install package using detected package manager"
+    echo "  mlty --remove <pkg> Remove package using detected package manager"
     exit 0
 fi
 
