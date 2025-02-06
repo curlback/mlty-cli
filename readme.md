@@ -68,7 +68,7 @@ A versatile command-line tool that combines system utilities with package manage
 
 ## Usage
 
-### Display the Message of the Day
+### Check if mlty is installed
 
 ```bash
 mlty
@@ -96,6 +96,24 @@ mlty --check
 
 ```bash
 mlty --pkg <package-name>
+```
+
+### Install a Package with External Flags
+
+```bash
+mlty --pkg <package-name> [external-flags]
+```
+
+Common usage examples:
+
+```bash
+mlty --pkg <package-name> -D
+```
+
+Install as a development dependency
+
+```bash
+mlty --pkg <package-name> -D
 ```
 
 ### Remove a Package

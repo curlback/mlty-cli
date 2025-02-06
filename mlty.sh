@@ -7,7 +7,7 @@
 #   To uninstall: ./mlty --uninstall 
 #   To show help: ./mlty --help
 #   To check package manager: ./mlty --check
-#   To install package: ./mlty --pkg <package-name>
+#   To install package: ./mlty --pkg <package-name> [external-flag]
 #   To remove package: ./mlty --remove <package-name>
 #   To run dev script: ./mlty --dev
 #   To install package manager: ./mlty --install-pkg-manager
@@ -21,7 +21,7 @@ show_help() {
     echo "  ./mlty --uninstall  Remove mlty from system"
     echo "  ./mlty --help       Show this help message"
     echo "  ./mlty --check      Check project info in current directory"
-    echo "  ./mlty --pkg <pkg>  Install package using detected package manager"
+    echo "  ./mlty --pkg <pkg> [external-flag]  Install package using detected package manager with optional external flag"
     echo "  ./mlty --remove <pkg> Remove package using detected package manager"
     echo "  ./mlty --dev        Run dev script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
@@ -186,28 +186,61 @@ install_package_manager() {
 # Install package using detected package manager
 install_package() {
     local package_name=$1
-    
+    local external_flag=$2
+
     if [[ ! -f "package.json" ]]; then
         echo "Error: No package.json found in current directory"
         exit 1
     fi
 
+    # Check if package is globally installed by checking if the package can be run via npx
+    if command -v npx &>/dev/null && npx --version &>/dev/null; then
+        if [[ -n "$external_flag" ]]; then
+            echo "Using npx to run $package_name with flag: $external_flag..."
+            npx "$package_name" "$external_flag"
+        else
+            echo "Using npx to run $package_name..."
+            npx "$package_name"
+        fi
+        return
+    fi
+
     # Detect package manager
     if [[ -f "bun.lockb" ]]; then
         echo "Using bun to install $package_name..."
-        bun add "$package_name"
+        if [[ -n "$external_flag" ]]; then
+            bun add "$package_name" "$external_flag"
+        else
+            bun add "$package_name"
+        fi
     elif [[ -f "pnpm-lock.yaml" ]]; then
         echo "Using pnpm to install $package_name..."
-        pnpm add "$package_name"
+        if [[ -n "$external_flag" ]]; then
+            pnpm add "$package_name" "$external_flag"
+        else
+            pnpm add "$package_name"
+        fi
     elif [[ -f "yarn.lock" ]]; then
         echo "Using yarn to install $package_name..."
-        yarn add "$package_name"
+        if [[ -n "$external_flag" ]]; then
+            yarn add "$package_name" "$external_flag"
+        else
+            yarn add "$package_name"
+        fi
     elif [[ -f "package-lock.json" ]]; then
         echo "Using npm to install $package_name..."
-        npm install "$package_name"
+        if [[ -n "$external_flag" ]]; then
+            npm install "$package_name" "$external_flag"
+        else
+            npm install "$package_name"
+        fi
     else
         echo "No package manager detected. Using npm as default..."
-        npm install "$package_name"
+        if [[ -n "$external_flag" ]]; then
+            npm install "$package_name" "$external_flag"
+        else
+            npm install "$package_name"
+        fi
     fi
 }
 
@@ -345,10 +378,10 @@ fi
 if [[ $1 == "--pkg" ]]; then
     if [[ -z $2 ]]; then
         echo "Error: Package name is required"
-        echo "Usage: mlty --pkg <package-name>"
+        echo "Usage: mlty --pkg <package-name> [external-flag]"
         exit 1
     fi
-    install_package "$2"
+    install_package "$2" "$3"
     exit 0
 fi
 
@@ -444,7 +477,7 @@ EOF
     echo "  mlty --help        Show help message"
     echo "  mlty --uninstall   Remove mlty from system"
     echo "  mlty --check       Check package manager in current directory"
-    echo "  mlty --pkg <pkg>   Install package using detected package manager"
+    echo "  mlty --pkg <pkg> [external-flag]   Install package using detected package manager"
     echo "  mlty --remove <pkg> Remove package using detected package manager"
     echo "  mlty --dev         Run dev script using detected package manager"
     echo "  mlty --install-pkg-manager Install detected package manager"
