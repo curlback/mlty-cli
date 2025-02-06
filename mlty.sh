@@ -10,6 +10,8 @@
 #   To install package: ./mlty --pkg <package-name>
 #   To remove package: ./mlty --remove <package-name>
 #   To run dev script: ./mlty --dev
+#   To install package manager: ./mlty --install-pkg-manager
+#   To install dependencies: ./mlty --install-deps
 #   To run after installation: mlty
 
 # Show help message
@@ -22,6 +24,8 @@ show_help() {
     echo "  ./mlty --pkg <pkg>  Install package using detected package manager"
     echo "  ./mlty --remove <pkg> Remove package using detected package manager"
     echo "  ./mlty --dev        Run dev script using detected package manager"
+    echo "  ./mlty --install-pkg-manager Install detected package manager"
+    echo "  ./mlty --install-deps Install all project dependencies"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -117,6 +121,68 @@ check_package_manager() {
     fi
 }
 
+# Install package manager based on detection
+install_package_manager() {
+    OS_TYPE=$(get_os)
+    
+    if [[ -f "bun.lockb" ]]; then
+        echo "Installing bun..."
+        case "$OS_TYPE" in
+            "debian"|"redhat"|"arch"|"linux"|"macos")
+                curl -fsSL https://bun.sh/install | bash
+                ;;
+            "windows")
+                echo "Bun is not officially supported on Windows"
+                exit 1
+                ;;
+        esac
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "Installing pnpm..."
+        case "$OS_TYPE" in
+            "debian"|"redhat"|"arch"|"linux"|"macos")
+                curl -fsSL https://get.pnpm.io/install.sh | sh -
+                ;;
+            "windows")
+                iwr https://get.pnpm.io/install.ps1 -useb | iex
+                ;;
+        esac
+    elif [[ -f "yarn.lock" ]]; then
+        echo "Installing yarn..."
+        if ! command -v npm &> /dev/null; then
+            echo "npm is required to install yarn. Please install Node.js first."
+            exit 1
+        fi
+        npm install -g yarn
+    elif [[ -f "package-lock.json" ]] || [[ ! -f "package.json" ]]; then
+        echo "Installing npm..."
+        case "$OS_TYPE" in
+            "debian")
+                sudo apt-get update && sudo apt-get install -y nodejs npm
+                ;;
+            "redhat")
+                sudo dnf install -y nodejs npm
+                ;;
+            "arch")
+                sudo pacman -S nodejs npm
+                ;;
+            "macos")
+                if command -v brew &> /dev/null; then
+                    brew install node
+                else
+                    echo "Please install Homebrew first"
+                    exit 1
+                fi
+                ;;
+            "windows")
+                echo "Please download Node.js installer from https://nodejs.org"
+                exit 1
+                ;;
+        esac
+    fi
+    
+    echo "Package manager installation complete!"
+}
+
 # Install package using detected package manager
 install_package() {
     local package_name=$1
@@ -143,6 +209,36 @@ install_package() {
         echo "No package manager detected. Using npm as default..."
         npm install "$package_name"
     fi
+}
+
+# Install all dependencies using detected package manager
+install_dependencies() {
+    if [[ ! -f "package.json" ]]; then
+        echo "Error: No package.json found in current directory"
+        exit 1
+    fi
+
+    echo "Installing project dependencies..."
+    
+    # Detect package manager
+    if [[ -f "bun.lockb" ]]; then
+        echo "Using bun to install dependencies..."
+        bun install
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "Using pnpm to install dependencies..."
+        pnpm install
+    elif [[ -f "yarn.lock" ]]; then
+        echo "Using yarn to install dependencies..."
+        yarn install
+    elif [[ -f "package-lock.json" ]]; then
+        echo "Using npm to install dependencies..."
+        npm install
+    else
+        echo "No package manager detected. Using npm as default..."
+        npm install
+    fi
+    
+    echo "Dependencies installation complete!"
 }
 
 # Remove package using detected package manager
@@ -207,6 +303,18 @@ fi
 # If check flag is provided, check package manager
 if [[ $1 == "--check" ]]; then
     check_package_manager
+    exit 0
+fi
+
+# If install-pkg-manager flag is provided, install package manager
+if [[ $1 == "--install-pkg-manager" ]]; then
+    install_package_manager
+    exit 0
+fi
+
+# If install-deps flag is provided, install dependencies
+if [[ $1 == "--install-deps" ]]; then
+    install_dependencies
     exit 0
 fi
 
@@ -316,6 +424,8 @@ EOF
     echo "  mlty --pkg <pkg>   Install package using detected package manager"
     echo "  mlty --remove <pkg> Remove package using detected package manager"
     echo "  mlty --dev         Run dev script using detected package manager"
+    echo "  mlty --install-pkg-manager Install detected package manager"
+    echo "  mlty --install-deps Install all project dependencies"
     exit 0
 fi
 
