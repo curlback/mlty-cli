@@ -13,9 +13,6 @@
 #   To install package manager: ./mlty --install-pkg-manager
 #   To install dependencies: ./mlty --install-deps
 #   To run after installation: mlty
-#
-# Direct installation:
-#   curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash -s -- --install
 
 # Show help message
 show_help() {
@@ -30,9 +27,6 @@ show_help() {
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
     echo "  mlty               Display message of the day"
-    echo
-    echo "Direct installation:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh | bash -s -- --install"
     exit 0
 }
 
