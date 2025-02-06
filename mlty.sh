@@ -269,11 +269,30 @@ remove_package() {
     fi
 }
 
+# Check if dependencies are installed
+check_deps_installed() {
+    if [[ ! -f "package.json" ]]; then
+        return 1
+    fi
+
+    if [[ -d "node_modules" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Run dev script using detected package manager
 run_dev() {
     if [[ ! -f "package.json" ]]; then
         echo "Error: No package.json found in current directory"
         exit 1
+    fi
+
+    # Check if dependencies are installed
+    if ! check_deps_installed; then
+        echo "Dependencies not found. Installing dependencies first..."
+        install_dependencies
     fi
 
     # Detect package manager
