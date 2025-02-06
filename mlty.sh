@@ -27,7 +27,6 @@ show_help() {
     echo "  ./mlty --dev        Run dev script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
-    echo "  ./mlty --update     Update mlty from the GitHub repository"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -57,14 +56,6 @@ spinner() {
     printf "    \b\b\b\b"
 }
 
-# Check for update
-update_mlty() {
-    echo "Updating mlty..."
-    curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$0" && chmod +x "$0"
-    echo "mlty has been updated successfully!"
-    exit 0
-}
-
 # Detect OS
 get_os() {
     case "$(uname -s)" in
@@ -92,42 +83,42 @@ check_package_manager() {
     # Get project name from package.json
     if [[ -f "package.json" ]]; then
         PROJECT_NAME=$(cat package.json | grep '"name":' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-        echo "Project Name: $PROJECT_NAME"
+        echo "📦 Project Name: $PROJECT_NAME"
         
         # Detect project stack
         if grep -q '"@nestjs/core"' package.json; then
-            echo "Project Stack: NestJS"
+            echo "🏗️  Project Stack: NestJS"
         elif grep -q '"next"' package.json; then
-            echo "Project Stack: NextJS"
+            echo "⚡ Project Stack: NextJS" 
         elif grep -q '"react"' package.json; then
-            echo "Project Stack: React"
+            echo "⚛️  Project Stack: React"
         elif grep -q '"@angular/core"' package.json; then
-            echo "Project Stack: Angular"
+            echo "🅰️  Project Stack: Angular"
         elif grep -q '"vue"' package.json; then
-            echo "Project Stack: Vue"
+            echo "🟩 Project Stack: Vue"
         else
-            echo "Project Stack: Unknown/Other"
+            echo "❓ Project Stack: Unknown/Other"
         fi
         
         # Detect package manager and version
         if [[ -f "bun.lockb" ]]; then
-            echo "Package Manager: bun"
-            echo "Version: $(bun --version 2>/dev/null || echo 'not installed')"
+            echo "🥟 Package Manager: bun"
+            echo "📊 Version: $(bun --version 2>/dev/null || echo 'not installed')"
         elif [[ -f "pnpm-lock.yaml" ]]; then
-            echo "Package Manager: pnpm"
-            echo "Version: $(pnpm --version 2>/dev/null || echo 'not installed')"
+            echo "🚀 Package Manager: pnpm"
+            echo "📊 Version: $(pnpm --version 2>/dev/null || echo 'not installed')"
         elif [[ -f "yarn.lock" ]]; then
-            echo "Package Manager: yarn"
-            echo "Version: $(yarn --version 2>/dev/null || echo 'not installed')"
+            echo "🧶 Package Manager: yarn"
+            echo "📊 Version: $(yarn --version 2>/dev/null || echo 'not installed')"
         elif [[ -f "package-lock.json" ]]; then
-            echo "Package Manager: npm"
-            echo "Version: $(npm --version 2>/dev/null || echo 'not installed')"
+            echo "📦 Package Manager: npm"
+            echo "📊 Version: $(npm --version 2>/dev/null || echo 'not installed')"
         else
-            echo "No package manager lock file found"
-            echo "Supported package managers: npm, yarn, pnpm, bun"
+            echo "⚠️  No package manager lock file found"
+            echo "💡 Supported package managers: npm, yarn, pnpm, bun"
         fi
     else
-        echo "No package.json found in current directory"
+        echo "❌ No package.json found in current directory"
     fi
 }
 
@@ -203,20 +194,15 @@ install_package() {
         exit 1
     fi
 
-    # Check if package is globally installed by checking if the package can be run via npx
-    if command -v npx &>/dev/null && npx --version &>/dev/null; then
-        if [[ -n "$external_flag" ]]; then
-            echo "Using npx to run $package_name with flag: $external_flag..."
-            npx "$package_name" "$external_flag"
-        else
-            echo "Using npx to run $package_name..."
-            npx "$package_name"
-        fi
-        return
-    fi
+    # Get project name from package.json
+    local project_name=$(grep -m 1 '"name":' package.json | cut -d'"' -f4)
 
-    # Detect package manager
+    # Detect and show package manager info
     if [[ -f "bun.lockb" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: bun"
+        echo "🔖 Version: $(bun --version)"
+        echo
         echo "Using bun to install $package_name..."
         if [[ -n "$external_flag" ]]; then
             bun add "$package_name" "$external_flag"
@@ -224,6 +210,10 @@ install_package() {
             bun add "$package_name"
         fi
     elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: pnpm"
+        echo "🔖 Version: $(pnpm --version)"
+        echo
         echo "Using pnpm to install $package_name..."
         if [[ -n "$external_flag" ]]; then
             pnpm add "$package_name" "$external_flag"
@@ -231,25 +221,42 @@ install_package() {
             pnpm add "$package_name"
         fi
     elif [[ -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: yarn"
+        echo "🔖 Version: $(yarn --version)"
+        echo
         echo "Using yarn to install $package_name..."
         if [[ -n "$external_flag" ]]; then
             yarn add "$package_name" "$external_flag"
         else
             yarn add "$package_name"
         fi
-    elif [[ -f "package-lock.json" ]]; then
-        echo "Using npm to install $package_name..."
-        if [[ -n "$external_flag" ]]; then
-            npm install "$package_name" "$external_flag"
+    elif [[ -f "package-lock.json" ]] || [[ ! -f "bun.lockb" && ! -f "pnpm-lock.yaml" && ! -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npm"
+        echo "🔖 Version: $(npm --version)"
+        echo
+        # For npm, try npx first
+        if command -v npx &>/dev/null; then
+            echo "Attempting to run with npx first..."
+            if [[ -n "$external_flag" ]]; then
+                if ! npx "$package_name" "$external_flag"; then
+                    echo "npx failed, falling back to npm install..."
+                    npm install "$package_name" "$external_flag"
+                fi
+            else
+                if ! npx "$package_name"; then
+                    echo "npx failed, falling back to npm install..."
+                    npm install "$package_name"
+                fi
+            fi
         else
-            npm install "$package_name"
-        fi
-    else
-        echo "No package manager detected. Using npm as default..."
-        if [[ -n "$external_flag" ]]; then
-            npm install "$package_name" "$external_flag"
-        else
-            npm install "$package_name"
+            echo "npx not found, using npm to install $package_name..."
+            if [[ -n "$external_flag" ]]; then
+                npm install "$package_name" "$external_flag"
+            else
+                npm install "$package_name"
+            fi
         fi
     fi
 }
@@ -360,11 +367,6 @@ run_dev() {
         npm run dev
     fi
 }
-
-# If the update flag is provided, update mlty
-if [[ $1 == "--update" ]]; then
-    update_mlty
-fi
 
 # Existing functionality (unchanged)
 # If help flag is provided, show help
