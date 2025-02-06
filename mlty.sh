@@ -6,6 +6,7 @@
 #   To install: ./mlty --install
 #   To uninstall: ./mlty --uninstall 
 #   To show help: ./mlty --help
+#   To check package manager: ./mlty --check
 #   To run after installation: mlty
 
 # Show help message
@@ -14,6 +15,7 @@ show_help() {
     echo "  ./mlty --install    Install mlty to system"
     echo "  ./mlty --uninstall  Remove mlty from system"
     echo "  ./mlty --help       Show this help message"
+    echo "  ./mlty --check      Check project info in current directory"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -65,9 +67,59 @@ get_os() {
     esac
 }
 
+# Check project info in current directory
+check_package_manager() {
+    # Get project name from package.json
+    if [[ -f "package.json" ]]; then
+        PROJECT_NAME=$(cat package.json | grep '"name":' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+        echo "Project Name: $PROJECT_NAME"
+        
+        # Detect project stack
+        if grep -q '"@nestjs/core"' package.json; then
+            echo "Project Stack: NestJS"
+        elif grep -q '"next"' package.json; then
+            echo "Project Stack: NextJS"
+        elif grep -q '"react"' package.json; then
+            echo "Project Stack: React"
+        elif grep -q '"@angular/core"' package.json; then
+            echo "Project Stack: Angular"
+        elif grep -q '"vue"' package.json; then
+            echo "Project Stack: Vue"
+        else
+            echo "Project Stack: Unknown/Other"
+        fi
+        
+        # Detect package manager and version
+        if [[ -f "bun.lockb" ]]; then
+            echo "Package Manager: bun"
+            echo "Version: $(bun --version 2>/dev/null || echo 'not installed')"
+        elif [[ -f "pnpm-lock.yaml" ]]; then
+            echo "Package Manager: pnpm"
+            echo "Version: $(pnpm --version 2>/dev/null || echo 'not installed')"
+        elif [[ -f "yarn.lock" ]]; then
+            echo "Package Manager: yarn"
+            echo "Version: $(yarn --version 2>/dev/null || echo 'not installed')"
+        elif [[ -f "package-lock.json" ]]; then
+            echo "Package Manager: npm"
+            echo "Version: $(npm --version 2>/dev/null || echo 'not installed')"
+        else
+            echo "No package manager lock file found"
+            echo "Supported package managers: npm, yarn, pnpm, bun"
+        fi
+    else
+        echo "No package.json found in current directory"
+    fi
+    exit 0
+}
+
 # If help flag is provided, show help
 if [[ $1 == "--help" ]]; then
     show_help
+fi
+
+# If check flag is provided, check package manager
+if [[ $1 == "--check" ]]; then
+    check_package_manager
 fi
 
 # If the script is run with the --install flag, perform installation.
@@ -144,6 +196,7 @@ EOF
     echo "  mlty               Display message of the day"
     echo "  mlty --help        Show help message"
     echo "  mlty --uninstall   Remove mlty from system"
+    echo "  mlty --check       Check package manager in current directory"
     exit 0
 fi
 
