@@ -9,6 +9,7 @@
 #   To check package manager: ./mlty --check
 #   To install package: ./mlty --pkg <package-name>
 #   To remove package: ./mlty --remove <package-name>
+#   To run dev script: ./mlty --dev
 #   To run after installation: mlty
 
 # Show help message
@@ -20,6 +21,7 @@ show_help() {
     echo "  ./mlty --check      Check project info in current directory"
     echo "  ./mlty --pkg <pkg>  Install package using detected package manager"
     echo "  ./mlty --remove <pkg> Remove package using detected package manager"
+    echo "  ./mlty --dev        Run dev script using detected package manager"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -171,6 +173,32 @@ remove_package() {
     fi
 }
 
+# Run dev script using detected package manager
+run_dev() {
+    if [[ ! -f "package.json" ]]; then
+        echo "Error: No package.json found in current directory"
+        exit 1
+    fi
+
+    # Detect package manager
+    if [[ -f "bun.lockb" ]]; then
+        echo "Using bun to run dev script..."
+        bun run dev
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "Using pnpm to run dev script..."
+        pnpm run dev
+    elif [[ -f "yarn.lock" ]]; then
+        echo "Using yarn to run dev script..."
+        yarn dev
+    elif [[ -f "package-lock.json" ]]; then
+        echo "Using npm to run dev script..."
+        npm run dev
+    else
+        echo "No package manager detected. Using npm as default..."
+        npm run dev
+    fi
+}
+
 # If help flag is provided, show help
 if [[ $1 == "--help" ]]; then
     show_help
@@ -201,6 +229,12 @@ if [[ $1 == "--remove" ]]; then
         exit 1
     fi
     remove_package "$2"
+    exit 0
+fi
+
+# If dev flag is provided, run dev script
+if [[ $1 == "--dev" ]]; then
+    run_dev
     exit 0
 fi
 
@@ -281,6 +315,7 @@ EOF
     echo "  mlty --check       Check package manager in current directory"
     echo "  mlty --pkg <pkg>   Install package using detected package manager"
     echo "  mlty --remove <pkg> Remove package using detected package manager"
+    echo "  mlty --dev         Run dev script using detected package manager"
     exit 0
 fi
 
