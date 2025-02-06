@@ -366,10 +366,18 @@ EOF
 
     case "$OS_TYPE" in
         "debian"|"redhat"|"arch"|"linux")
-            cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
+            if [[ "$EUID" -ne 0 ]]; then
+                sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty &
+            else
+                cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
+            fi
             ;;
         "macos")
-            cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
+            if [[ "$EUID" -ne 0 ]]; then
+                sudo cp "$TMP_FILE" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty &
+            else
+                cp "$TMP_FILE" /usr/local/bin/mlty && chmod +x /usr/local/bin/mlty &
+            fi
             ;;
         "windows")
             # For Windows, we'll install to the user's home directory
@@ -454,34 +462,18 @@ fi
 
 # If install flag is provided, install mlty
 if [[ $1 == "--install" ]]; then
-    if [[ "$EUID" -ne 0 ]]; then
-        echo "Error: Installation requires root privileges"
-        echo "Please run with sudo"
-        exit 1
-    fi
     install_mlty
     exit 0
 fi
 
 # If no arguments provided and script is being piped, install mlty
 if [[ -z $1 ]] && [[ ! -t 0 ]]; then
-    if [[ "$EUID" -ne 0 ]]; then
-        echo "Error: Installation requires root privileges"
-        echo "Please run with sudo"
-        exit 1
-    fi
     install_mlty
     exit 0
 fi
 
 # If the script is run with the --uninstall flag, perform uninstallation
 if [[ $1 == "--uninstall" ]]; then
-    if [[ "$EUID" -ne 0 ]]; then
-        echo "Error: Uninstallation requires root privileges"
-        echo "Please run with sudo"
-        exit 1
-    fi
-
     OS_TYPE=$(get_os)
 
     # Ask for confirmation
@@ -495,7 +487,11 @@ if [[ $1 == "--uninstall" ]]; then
     echo "Uninstalling mlty ..."
     case "$OS_TYPE" in
         "debian"|"redhat"|"arch"|"linux"|"macos")
-            rm -f /usr/local/bin/mlty &
+            if [[ "$EUID" -ne 0 ]]; then
+                sudo rm -f /usr/local/bin/mlty &
+            else
+                rm -f /usr/local/bin/mlty &
+            fi
             ;;
         "windows")
             rm -rf "$HOME/mlty" &
