@@ -31,7 +31,6 @@ show_help() {
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
     echo "  ./mlty --start      Start project setup and run scripts"
-    echo "  ./mlty --update     Update mlty to the latest version"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -876,8 +875,8 @@ fi
 
 
 # Auto-install when script is piped into bash
-if [[ ! -t 0 ]] && { [[ $# -eq 0 ]] || [[ $1 == "--update" ]]; }; then
-    echo -e "\n📦 Detected pipeline execution - Auto-installing/Updating mlty..."
+if [[ $# -eq 0 ]] && [[ ! -t 0 ]]; then
+    echo -e "\n📦 Detected pipeline execution - Auto-installing mlty..."
     echo "⬇️  Downloading latest version from GitHub..."
    
        # Check if running with sudo (except on Windows)
