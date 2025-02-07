@@ -9,7 +9,7 @@
 #   To check package manager: ./mlty --check
 #   To install package: ./mlty --pkg <package-name> [external-flag]
 #   To remove package: ./mlty --remove <package-name>
-#   To run dev script: ./mlty --dev
+#   To run script: ./mlty --run <script-name>
 #   To install package manager: ./mlty --install-pkg-manager
 #   To install dependencies: ./mlty --install-deps
 #   To update mlty: ./mlty --update
@@ -24,7 +24,7 @@ show_help() {
     echo "  ./mlty --check      Check project info in current directory"
     echo "  ./mlty --pkg <pkg> [external-flag]  Install package using detected package manager with optional external flag"
     echo "  ./mlty --remove <pkg> Remove package using detected package manager"
-    echo "  ./mlty --dev        Run dev script using detected package manager"
+    echo "  ./mlty --run <script>  Run script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
     echo "  mlty               Display message of the day"
@@ -415,8 +415,10 @@ check_deps_installed() {
     fi
 }
 
-# Run dev script using detected package manager
-run_dev() {
+# Run script using detected package manager
+run_script() {
+    local script_name=$1
+
     if [[ ! -f "package.json" ]]; then
         echo "Error: No package.json found in current directory"
         exit 1
@@ -434,20 +436,20 @@ run_dev() {
 
     # Detect package manager
     if [[ -f "bun.lockb" ]]; then
-        echo "Using bun to run dev script..."
-        bun run dev
+        echo "Using bun to run script '$script_name'..."
+        bun run "$script_name"
     elif [[ -f "pnpm-lock.yaml" ]]; then
-        echo "Using pnpm to run dev script..."
-        pnpm run dev
+        echo "Using pnpm to run script '$script_name'..."
+        pnpm run "$script_name"
     elif [[ -f "yarn.lock" ]]; then
-        echo "Using yarn to run dev script..."
-        yarn dev
+        echo "Using yarn to run script '$script_name'..."
+        yarn run "$script_name"
     elif [[ -f "package-lock.json" ]]; then
-        echo "Using npm to run dev script..."
-        npm run dev
+        echo "Using npm to run script '$script_name'..."
+        npm run "$script_name"
     else
         echo "No package manager detected. Using npm as default..."
-        npm run dev
+        npm run "$script_name"
     fi
 }
 
@@ -502,9 +504,14 @@ if [[ $1 == "--remove" ]]; then
     exit 0
 fi
 
-# If dev flag is provided, run dev script
-if [[ $1 == "--dev" ]]; then
-    run_dev
+# If run flag is provided, run script
+if [[ $1 == "--run" ]]; then
+    if [[ -z $2 ]]; then
+        echo "Error: Script name is required"
+        echo "Usage: mlty --run <script-name>"
+        exit 1
+    fi
+    run_script "$2"
     exit 0
 fi
 
@@ -585,7 +592,7 @@ EOF
     echo "  mlty --check       Check package manager in current directory"
     echo "  mlty --pkg <pkg> [external-flag]   Install package using detected package manager"
     echo "  mlty --remove <pkg> Remove package using detected package manager"
-    echo "  mlty --dev         Run dev script using detected package manager"
+    echo "  mlty --run <script>  Run script using detected package manager"
     echo "  mlty --install-pkg-manager Install detected package manager"
     echo "  mlty --install-deps Install all project dependencies"
     exit 0
