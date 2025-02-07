@@ -909,13 +909,9 @@ EOF
 # Auto-install when script is piped into bash
 if [[ $# -eq 0 ]] && [[ ! -t 0 ]]; then
     echo -e "\n📦 Detected pipeline execution - Auto-installing mlty..."
-    temp_script=$(mktemp)
     echo "⬇️  Downloading latest version from GitHub..."
-    curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$temp_script"
-    sudo chmod +x "$temp_script"
-    echo "🚀 Starting installation..."
-    
- # Check if running with sudo (except on Windows)
+   
+       # Check if running with sudo (except on Windows)
     OS_TYPE=$(get_os)
     if [[ "$OS_TYPE" != "windows" ]]; then
         sudo -v || {
@@ -961,17 +957,17 @@ EOF
     echo
 
     case "$OS_TYPE" in
-        "debian"|"redhat"|"arch"|"linux")
-            (sudo cp "$temp_script" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
-            ;;
-        "macos")
-            (sudo cp "$temp_script" /usr/local/bin/mlty && sudo chmod +x /usr/local/bin/mlty) &
+        "debian"|"redhat"|"arch"|"linux"|"macos")
+            echo "⬇️  Downloading the latest version of mlty..."
+            sudo curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o /usr/local/bin/mlty
+            sudo chmod +x /usr/local/bin/mlty
             ;;
         "windows")
-            # For Windows, we'll install to the user's home directory
+            # For Windows, install to the user's home directory
             WIN_INSTALL_DIR="$HOME/mlty"
             mkdir -p "$WIN_INSTALL_DIR"
-            (cp "$temp_script" "$WIN_INSTALL_DIR/mlty" && chmod +x "$WIN_INSTALL_DIR/mlty") &
+            curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$WIN_INSTALL_DIR/mlty"
+            chmod +x "$WIN_INSTALL_DIR/mlty"
             echo "Please add $WIN_INSTALL_DIR to your PATH"
             ;;
         *)
@@ -979,8 +975,7 @@ EOF
             exit 1
             ;;
     esac
-    
-    spinner $!
+
     echo
     echo
     echo "Installation complete! You can now use the following commands:"
