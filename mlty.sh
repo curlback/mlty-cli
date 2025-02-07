@@ -888,30 +888,6 @@ if [[ $# -eq 0 ]] && [[ ! -t 0 ]]; then
         }
     fi
 
-    cat << EOF
-                                                                           
-                        lllllll         tttt                               
-                        l:::::l      ttt:::t                               
-                        l:::::l      t:::::t                               
-                        l:::::l      t:::::t                               
-   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
- mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
-m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
-m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
-m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
-m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
-m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
-m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
-m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
-m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
-m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
-mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
-                                                        y:::::y            
-                                                       y:::::y             
-                                                      y:::::y              
-                                                     y:::::y               
-                                                    yyyyyyy                
-EOF
     echo
 
     echo "System Information:"
