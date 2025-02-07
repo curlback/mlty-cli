@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# mlty: A self-installing CLI tool that displays a message of the day.
+# mlty: A versatile command-line tool for managing projects and package managers. It provides utilities for installing/removing packages, running scripts, checking project info, and managing dependencies across npm, yarn, pnpm and bun package managers.
 #
 # Usage:
 #   To install: ./mlty --install

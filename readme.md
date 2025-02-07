@@ -1,6 +1,8 @@
 # mlty
 
-A versatile command-line tool that combines system utilities with package management capabilities and functionality such as package management detection and installation.
+A versatile command-line tool for managing projects and package managers. It provides utilities for installing/removing packages, running scripts, checking project info, and managing dependencies across npm, yarn, pnpm and bun package managers.
+
+#
 
 ## Features
 
