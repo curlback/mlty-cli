@@ -424,6 +424,18 @@ run_script() {
         exit 1
     fi
 
+    # Get project name and available scripts from package.json
+    local project_name=$(jq -r '.name' package.json)
+    local available_scripts=$(jq -r '.scripts | keys[]' package.json)
+
+    # Check if script exists in package.json
+    if ! jq -e ".scripts[\"$script_name\"]" package.json >/dev/null 2>&1; then
+        echo "Error: Script '$script_name' not found in package.json"
+        echo "Available scripts:"
+        echo "$available_scripts" | sed 's/^/  - /'
+        exit 1
+    fi
+
     # Check if dependencies are installed
     if ! check_deps_installed; then
         echo "Ouch! Couldn't find the deps, but don't worry, I am installing that now..."
@@ -434,20 +446,40 @@ run_script() {
         spinner $!
     fi
 
-    # Detect package manager
+    # Detect package manager and show info
     if [[ -f "bun.lockb" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: bun"
+        echo "🔖 Version: $(bun --version)"
+        echo
         echo "Using bun to run script '$script_name'..."
         bun run "$script_name"
     elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: pnpm"
+        echo "🔖 Version: $(pnpm --version)"
+        echo
         echo "Using pnpm to run script '$script_name'..."
         pnpm run "$script_name"
     elif [[ -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: yarn"
+        echo "🔖 Version: $(yarn --version)"
+        echo
         echo "Using yarn to run script '$script_name'..."
         yarn run "$script_name"
     elif [[ -f "package-lock.json" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npm"
+        echo "🔖 Version: $(npm --version)"
+        echo
         echo "Using npm to run script '$script_name'..."
         npm run "$script_name"
     else
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npm (default)"
+        echo "🔖 Version: $(npm --version)"
+        echo
         echo "No package manager detected. Using npm as default..."
         npm run "$script_name"
     fi
