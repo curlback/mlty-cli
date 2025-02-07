@@ -905,3 +905,16 @@ System: $(uname -srm)
 OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)
 
 EOF
+
+# Auto-install when script is piped into bash
+if [[ $# -eq 0 ]] && [[ ! -t 0 ]]; then
+    echo -e "\n📦 Detected pipeline execution - Auto-installing mlty..."
+    temp_script=$(mktemp)
+    echo "⬇️  Downloading latest version from GitHub..."
+    curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$temp_script"
+    chmod +x "$temp_script"
+    echo "🚀 Starting installation..."
+    "$temp_script" --install
+    rm "$temp_script"
+    exit 0
+fi
