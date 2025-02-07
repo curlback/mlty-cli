@@ -8,6 +8,7 @@
 #   To show help: ./mlty --help
 #   To check package manager: ./mlty --check
 #   To install package: ./mlty --pkg <package-name> [external-flag]
+#   To use alternate package manager: ./mlty --altpkg <package-name> [external-flag]
 #   To remove package: ./mlty --remove <package-name>
 #   To run script: ./mlty --run <script-name>
 #   To install package manager: ./mlty --install-pkg-manager
@@ -23,6 +24,7 @@ show_help() {
     echo "  ./mlty --help       Show this help message"
     echo "  ./mlty --check      Check project info in current directory"
     echo "  ./mlty --pkg <pkg> [external-flag]  Install package using detected package manager with optional external flag"
+    echo "  ./mlty --altpkg <pkg> [external-flag]  Install package using alternate package manager with optional external flag"
     echo "  ./mlty --remove <pkg> Remove package using detected package manager"
     echo "  ./mlty --run <script>  Run script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
@@ -261,61 +263,129 @@ install_package() {
                 exit 1
             fi
         fi
-    elif [[ -f "package-lock.json" ]] || [[ ! -f "bun.lockb" && ! -f "pnpm-lock.yaml" && ! -f "yarn.lock" ]]; then
+    elif [[ -f "package-lock.json" ]]; then
         echo "📦 Project: $project_name"
         echo "📋 Package Manager: npm"
         echo "🔖 Version: $(npm --version)"
         echo
-        # For npm, try npx first
-        if command -v npx &>/dev/null; then
-            echo "Attempting to run with npx first..."
-            if [[ -n "$external_flag" ]]; then
-                if ! npx "${package_name}" "${external_flag}"; then
-                    local npx_status=$?
-                    if [[ $npx_status -eq 130 ]]; then
-                        echo "You cancelled the command"
-                        exit 1
-                    fi
-                    echo "npx failed, falling back to npm install..."
-                    if ! npm install "${package_name}" "${external_flag}"; then
-                        if [[ $? -eq 130 ]]; then
-                            echo "You cancelled the command"
-                        fi
-                        exit 1
-                    fi
+        echo "Using npm to install $package_name..."
+        if [[ -n "$external_flag" ]]; then
+            if ! npm install "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
                 fi
-            else
-                if ! npx "${package_name}"; then
-                    local npx_status=$?
-                    if [[ $npx_status -eq 130 ]]; then
-                        echo "You cancelled the command"
-                        exit 1
-                    fi
-                    echo "npx failed, falling back to npm install..."
-                    if ! npm install "${package_name}"; then
-                        if [[ $? -eq 130 ]]; then
-                            echo "You cancelled the command"
-                        fi
-                        exit 1
-                    fi
-                fi
+                exit 1
             fi
         else
-            echo "npx not found, using npm to install $package_name..."
-            if [[ -n "$external_flag" ]]; then
-                if ! npm install "${package_name}" "${external_flag}"; then
-                    if [[ $? -eq 130 ]]; then
-                        echo "You cancelled the command"
-                    fi
-                    exit 1
+            if ! npm install "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
                 fi
-            else
-                if ! npm install "${package_name}"; then
-                    if [[ $? -eq 130 ]]; then
-                        echo "You cancelled the command"
-                    fi
-                    exit 1
+                exit 1
+            fi
+        fi
+    else
+        echo "Error: No package manager detected. Please run 'mlty --install-pkg-manager' first"
+        exit 1
+    fi
+}
+
+# Install package using alternate package manager
+install_package_alt() {
+    local package_name=$1
+    local external_flag=$2
+
+    if [[ ! -f "package.json" ]]; then
+        echo "Error: No package.json found in current directory"
+        exit 1
+    fi
+
+    # Get project name from package.json
+    local project_name=$(grep -m 1 '"name":' package.json | cut -d'"' -f4)
+
+    # Detect and show package manager info
+    if [[ -f "bun.lockb" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: bunx (alternate)"
+        echo "🔖 Version: $(bun --version)"
+        echo
+        echo "Using bunx to run $package_name..."
+        if [[ -n "$external_flag" ]]; then
+            if ! bunx "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
                 fi
+                exit 1
+            fi
+        else
+            if ! bunx "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        fi
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: pnpx (alternate)"
+        echo "🔖 Version: $(pnpm --version)"
+        echo
+        echo "Using pnpx to run $package_name..."
+        if [[ -n "$external_flag" ]]; then
+            if ! pnpx "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        else
+            if ! pnpx "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        fi
+    elif [[ -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: yarn dlx (alternate)"
+        echo "🔖 Version: $(yarn --version)"
+        echo
+        echo "Using yarn dlx to run $package_name..."
+        if [[ -n "$external_flag" ]]; then
+            if ! yarn dlx "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        else
+            if ! yarn dlx "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        fi
+    elif [[ -f "package-lock.json" ]] || [[ ! -f "bun.lockb" && ! -f "pnpm-lock.yaml" && ! -f "yarn.lock" ]]; then
+        echo "📦 Project: $project_name"
+        echo "📋 Package Manager: npx (alternate)"
+        echo "🔖 Version: $(npm --version)"
+        echo
+        echo "Using npx to run $package_name..."
+        if [[ -n "$external_flag" ]]; then
+            if ! npx "${package_name}" "${external_flag}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
+            fi
+        else
+            if ! npx "${package_name}"; then
+                if [[ $? -eq 130 ]]; then
+                    echo "You cancelled the command"
+                fi
+                exit 1
             fi
         fi
     fi
@@ -525,6 +595,17 @@ if [[ $1 == "--pkg" ]]; then
     exit 0
 fi
 
+# If altpkg flag is provided, install package using alternate package manager
+if [[ $1 == "--altpkg" ]]; then
+    if [[ -z $2 ]]; then
+        echo "Error: Package name is required"
+        echo "Usage: mlty --altpkg <package-name> [external-flag]"
+        exit 1
+    fi
+    install_package_alt "$2" "$3"
+    exit 0
+fi
+
 # If remove flag is provided, remove package
 if [[ $1 == "--remove" ]]; then
     if [[ -z $2 ]]; then
@@ -623,6 +704,7 @@ EOF
     echo "  mlty --uninstall   Remove mlty from system"
     echo "  mlty --check       Check package manager in current directory"
     echo "  mlty --pkg <pkg> [external-flag]   Install package using detected package manager"
+    echo "  mlty --altpkg <pkg> [external-flag]   Install package using alternate package manager"
     echo "  mlty --remove <pkg> Remove package using detected package manager"
     echo "  mlty --run <script>  Run script using detected package manager"
     echo "  mlty --install-pkg-manager Install detected package manager"
