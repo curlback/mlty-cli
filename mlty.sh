@@ -14,6 +14,7 @@
 #   To install package manager: ./mlty --install-pkg-manager
 #   To install dependencies: ./mlty --install-deps
 #   To update mlty: ./mlty --update
+#   To start project: ./mlty --start
 #   To run after installation: mlty
 
 # Show help message
@@ -29,6 +30,7 @@ show_help() {
     echo "  ./mlty --run <script>  Run script using detected package manager"
     echo "  ./mlty --install-pkg-manager Install detected package manager"
     echo "  ./mlty --install-deps Install all project dependencies"
+    echo "  ./mlty --start      Start project setup and run scripts"
     echo "  mlty               Display message of the day"
     exit 0
 }
@@ -77,6 +79,124 @@ get_os() {
         MINGW*)    echo "windows";;
         MSYS*)     echo "windows";;
         *)         echo "unknown";;
+    esac
+}
+
+# Start project setup and run scripts
+start_project() {
+    # Get OS info
+    OS_TYPE=$(get_os)
+    echo "🖥️  Operating System: $OS_TYPE"
+    
+    # Get project info
+    if [[ ! -f "package.json" ]]; then
+        echo "❌ No package.json found in current directory"
+        exit 1
+    fi
+    
+    PROJECT_NAME=$(jq -r '.name' package.json)
+    echo "📦 Project Name: $PROJECT_NAME"
+    
+    # Detect and verify package manager
+    if [[ -f "bun.lockb" ]]; then
+        PKG_MANAGER="bun"
+        PKG_VERSION=$(bun --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        PKG_MANAGER="pnpm"
+        PKG_VERSION=$(pnpm --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "yarn.lock" ]]; then
+        PKG_MANAGER="yarn"
+        PKG_VERSION=$(yarn --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "package-lock.json" ]]; then
+        PKG_MANAGER="npm"
+        PKG_VERSION=$(npm --version 2>/dev/null || echo 'not installed')
+    else
+        PKG_MANAGER="npm"
+        PKG_VERSION=$(npm --version 2>/dev/null || echo 'not installed')
+    fi
+    
+    echo "📋 Package Manager: $PKG_MANAGER"
+    echo "🔖 Version: $PKG_VERSION"
+    
+    # Check if package manager is installed
+    if [[ $PKG_VERSION == "not installed" ]]; then
+        echo "❌ $PKG_MANAGER is not installed"
+        case $PKG_MANAGER in
+            "bun")
+                echo "📝 Install bun: https://bun.sh/docs/installation"
+                ;;
+            "pnpm") 
+                echo "📝 Install pnpm: https://pnpm.io/installation"
+                ;;
+            "yarn")
+                echo "📝 Install yarn: https://yarnpkg.com/getting-started/install"
+                ;;
+            "npm")
+                echo "📝 Install npm: https://nodejs.org"
+                ;;
+        esac
+        exit 1
+    fi
+    
+    # Install dependencies
+    echo "📦 Installing dependencies..."
+    echo "Here's a joke while you wait:"
+    get_random_joke
+    echo
+    
+    case $PKG_MANAGER in
+        "bun")
+            bun install &
+            ;;
+        "pnpm")
+            pnpm install &
+            ;;
+        "yarn")
+            yarn install &
+            ;;
+        "npm")
+            npm install &
+            ;;
+    esac
+    
+    spinner $!
+    echo "✅ Dependencies installed successfully!"
+    
+    # Get available scripts
+    echo "📜 Available scripts:"
+    SCRIPTS=$(jq -r '.scripts | keys[]' package.json)
+    echo "$SCRIPTS" | nl -w2 -s') '
+    
+    # Ask user which script to run
+    echo
+    read -p "Enter the number of the script you want to run (or 0 to exit): " SCRIPT_NUM
+    
+    if [[ $SCRIPT_NUM == "0" ]]; then
+        echo "👋 Goodbye!"
+        exit 0
+    fi
+    
+    SELECTED_SCRIPT=$(echo "$SCRIPTS" | sed -n "${SCRIPT_NUM}p")
+    
+    if [[ -z $SELECTED_SCRIPT ]]; then
+        echo "❌ Invalid script number"
+        exit 1
+    fi
+    
+    echo "🚀 Running script: $SELECTED_SCRIPT"
+    case $PKG_MANAGER in
+        "bun")
+            bun run "$SELECTED_SCRIPT"
+            ;;
+        "pnpm")
+            pnpm run "$SELECTED_SCRIPT"
+            ;;
+        "yarn")
+            yarn run "$SELECTED_SCRIPT"
+            ;;
+        "npm")
+            npm run "$SELECTED_SCRIPT"
+            ;;
     esac
 }
 
@@ -625,6 +745,12 @@ if [[ $1 == "--run" ]]; then
         exit 1
     fi
     run_script "$2"
+    exit 0
+fi
+
+# If start flag is provided, start project setup
+if [[ $1 == "--start" ]]; then
+    start_project
     exit 0
 fi
 
