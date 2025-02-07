@@ -876,7 +876,7 @@ fi
 
 
 # Auto-install when script is piped into bash
-if { [[ $# -eq 0 ]] || [[ $1 == "--update" ]]; } && [[ ! -t 0 ]]; then
+if [[ ! -t 0 ]] && { [[ $# -eq 0 ]] || [[ $1 == "--update" ]]; }; then
     echo -e "\n📦 Detected pipeline execution - Auto-installing/Updating mlty..."
     echo "⬇️  Downloading latest version from GitHub..."
    
