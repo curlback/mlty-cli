@@ -959,36 +959,3 @@ EOF
     echo "  mlty --install-deps Install all project dependencies"
     exit 0
 fi
-
-# Otherwise, display the message of the day.
-cat << EOF                                                             
-                                                                           
-                        lllllll         tttt                               
-                        l:::::l      ttt:::t                               
-                        l:::::l      t:::::t                               
-                        l:::::l      t:::::t                               
-   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
- mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
-m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
-m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
-m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
-m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
-m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
-m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
-m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
-m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
-m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
-mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
-                                                        y:::::y            
-                                                       y:::::y             
-                                                      y:::::y              
-                                                     y:::::y               
-                                                    yyyyyyy                
-                                                                           
-                                                                           
-Welcome to mlty!
-Date: $(date)
-System: $(uname -srm)
-OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)
-
-EOF
