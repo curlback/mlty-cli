@@ -912,7 +912,7 @@ if [[ $# -eq 0 ]] && [[ ! -t 0 ]]; then
     temp_script=$(mktemp)
     echo "⬇️  Downloading latest version from GitHub..."
     curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$temp_script"
-    chmod +x "$temp_script"
+    sudo chmod +x "$temp_script"
     echo "🚀 Starting installation..."
     "$temp_script" --install
     rm "$temp_script"
