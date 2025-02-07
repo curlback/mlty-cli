@@ -959,3 +959,117 @@ EOF
     echo "  mlty --install-deps Install all project dependencies"
     exit 0
 fi
+
+
+#update
+if [[ $1 == "--update" ]]; then
+    echo -e "\n📦 Updating mlty..."
+    echo "⬇️  Downloading latest version from GitHub..."
+   
+    # Check if running with sudo (except on Windows)
+    OS_TYPE=$(get_os)
+    if [[ "$OS_TYPE" != "windows" ]]; then
+        sudo -v || {
+            echo "Error: Installation requires sudo privileges"
+            exit 1
+        }
+    fi
+
+    cat << EOF
+                                                                           
+                        lllllll         tttt                               
+                        l:::::l      ttt:::t                               
+                        l:::::l      t:::::t                               
+                        l:::::l      t:::::t                               
+   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
+ mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
+m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
+m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
+m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
+m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
+m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
+m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
+m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
+m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
+m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
+mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
+                                                        y:::::y            
+                                                       y:::::y             
+                                                      y:::::y              
+                                                     y:::::y               
+                                                    yyyyyyy                
+EOF
+    echo
+
+    echo "System Information:"
+    echo "Date: $(date)"
+    echo "OS: $OS_TYPE"
+    echo
+
+    echo -e "\e[1;36mInstalling mlty...\e[0m"
+    echo "Here's a joke while we install:"
+    get_random_joke
+    echo
+
+    case "$OS_TYPE" in
+        "debian"|"redhat"|"arch"|"linux"|"macos")
+            echo "⬇️  Downloading the latest version of mlty..."
+            sudo curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o /usr/local/bin/mlty
+            sudo chmod +x /usr/local/bin/mlty
+            ;;
+        "windows")
+            # For Windows, install to the user's home directory
+            WIN_INSTALL_DIR="$HOME/mlty"
+            mkdir -p "$WIN_INSTALL_DIR"
+            curl -sSL https://raw.githubusercontent.com/curlback/mlty-cli/master/mlty.sh -o "$WIN_INSTALL_DIR/mlty"
+            chmod +x "$WIN_INSTALL_DIR/mlty"
+            echo "Please add $WIN_INSTALL_DIR to your PATH"
+            ;;
+        *)
+            echo "Unsupported operating system"
+            exit 1
+            ;;
+    esac
+
+    echo
+    echo
+    echo "Update complete! You can now use the following commands:"
+    echo "  mlty --help        Show help message"
+    exit 0
+fi
+
+
+# Display message of the day
+if [[ $# -eq 0 ]] || [[ $1 == "mlty" ]]; then
+    cat << EOF
+                                                                           
+                        lllllll         tttt                               
+                        l:::::l      ttt:::t                               
+                        l:::::l      t:::::t                               
+                        l:::::l      t:::::t                               
+   mmmmmmm    mmmmmmm    l::::lttttttt:::::tttttttyyyyyyy           yyyyyyy
+ mm:::::::m  m:::::::mm  l::::lt:::::::::::::::::t y:::::y         y:::::y 
+m::::::::::mm::::::::::m l::::lt:::::::::::::::::t  y:::::y       y:::::y  
+m::::::::::::::::::::::m l::::ltttttt:::::::tttttt   y:::::y     y:::::y   
+m:::::mmm::::::mmm:::::m l::::l      t:::::t          y:::::y   y:::::y    
+m::::m   m::::m   m::::m l::::l      t:::::t           y:::::y y:::::y     
+m::::m   m::::m   m::::m l::::l      t:::::t            y:::::y:::::y      
+m::::m   m::::m   m::::m l::::l      t:::::t    tttttt   y:::::::::y       
+m::::m   m::::m   m::::ml::::::l     t::::::tttt:::::t    y:::::::y        
+m::::m   m::::m   m::::ml::::::l     tt::::::::::::::t     y:::::y         
+m::::m   m::::m   m::::ml::::::l       tt:::::::::::tt    y:::::y          
+mmmmmm   mmmmmm   mmmmmmllllllll         ttttttttttt     y:::::y           
+                                                        y:::::y            
+                                                       y:::::y             
+                                                      y:::::y              
+                                                     y:::::y               
+                                                    yyyyyyy                
+EOF
+    echo
+
+    echo "System Information:"
+    echo "Date: $(date)"
+    echo "OS: $(get_os)"
+    echo
+    exit 0
+fi
