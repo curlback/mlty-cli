@@ -82,6 +82,7 @@ get_os() {
     esac
 }
 
+
 # Start project setup and run scripts
 start_project() {
     # Get OS info
@@ -563,6 +564,7 @@ install_dependencies() {
     
     echo "Dependencies installation complete!"
 }
+
 
 # Remove package using detected package manager
 remove_package() {
@@ -1071,5 +1073,113 @@ EOF
     echo "Date: $(date)"
     echo "OS: $(get_os)"
     echo
+    exit 0
+fi
+
+
+# Check for the mlty --env flag
+if [[ "$1" == "--env" ]]; then
+    DIR=${2:-.} # Use provided directory or default to current
+
+    # Get project info
+    if [[ ! -f "package.json" ]]; then
+        echo "❌ No package.json found in current directory"
+        exit 1
+    fi
+    
+    PROJECT_NAME=$(jq -r '.name' package.json)
+    echo "📦 Project: $PROJECT_NAME"
+    
+    # Detect and show package manager info
+    if [[ -f "bun.lockb" ]]; then
+        PKG_MANAGER="bun"
+        PKG_VERSION=$(bun --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "pnpm-lock.yaml" ]]; then
+        PKG_MANAGER="pnpm"
+        PKG_VERSION=$(pnpm --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "yarn.lock" ]]; then
+        PKG_MANAGER="yarn"
+        PKG_VERSION=$(yarn --version 2>/dev/null || echo 'not installed')
+    elif [[ -f "package-lock.json" ]]; then
+        PKG_MANAGER="npm"
+        PKG_VERSION=$(npm --version 2>/dev/null || echo 'not installed')
+    else
+        PKG_MANAGER="npm"
+        PKG_VERSION=$(npm --version 2>/dev/null || echo 'not installed')
+    fi
+    
+    echo "📋 Package Manager: $PKG_MANAGER"
+    echo "🔖 Version: $PKG_VERSION"
+    echo
+
+    echo "🔍 Starting deep scan for environment variables in $DIR ..."
+    
+    # Start the scan in background and capture PID
+    {
+        # Find all unique environment variable patterns in source code files only
+        ENV_VARS_WITH_FILES=$(find "$DIR" -type f \
+            -not -path "*/\.*" \
+            -not -path "*/node_modules/*" \
+            -not -path "*/vendor/*" \
+            -not -path "*/dist/*" \
+            -not -path "*/build/*" \
+            -not -path "*/.next/*" \
+            -not -path "*/out/*" \
+            -not -path "*/.output/*" \
+            -not -path "*/.nuxt/*" \
+            -not -path "*/coverage/*" \
+            -not -name "*.d.ts" \
+            -not -name "package*.json" \
+            -not -name "*.lock" \
+            -not -name "bun.lockb" \
+            -not -name "yarn.lock" \
+            -not -name "pnpm-lock.yaml" \
+            -not -name "composer.lock" \
+            -not -name "Gemfile.lock" \
+            -not -name "poetry.lock" \
+            -not -name "Cargo.lock" \
+            -not -name "*.min.*" \
+            -not -name "*.map" \
+            -type f -exec file {} \; | grep 'text\|ASCII' | cut -d: -f1 | \
+            xargs grep -Eho -H '\b[A-Z_][A-Z0-9_]*=|\$[A-Z_][A-Z0-9_]*|\$\{[A-Z_][A-Z0-9_]*\}|process\.env\.[A-Z_][A-Z0-9_]*|configService\.get\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)' 2>/dev/null | \
+            sed -E 's/^([^:]+):(configService\.get\(['"'"'"]|configService\.get\(['"'"'"]\)|['"'"'"]\)|\$|\$\{|\}$|process\.env\.|=)/\1:/g')
+
+        echo "$ENV_VARS_WITH_FILES" > /tmp/env_scan_results
+    } & 
+
+    # Display spinner while scanning
+    spinner $!
+
+    # Read results back
+    ENV_VARS_WITH_FILES=$(cat /tmp/env_scan_results)
+    rm -f /tmp/env_scan_results
+
+    # Output the detected environment variables
+    if [[ -n "$ENV_VARS_WITH_FILES" ]]; then
+        echo "✅ Environment variables found in the following files:"
+        echo
+
+        # Create/overwrite .env file
+        > .env
+        
+        # Process and display results, adding to .env
+        echo "$ENV_VARS_WITH_FILES" | while IFS=: read -r file var; do
+            # Only process if we have both file and var
+            if [[ -n "$file" && -n "$var" ]]; then
+                echo "📄 $file:"
+                echo "   - $var"
+                # Only add to .env if not already present
+                if ! grep -q "^$var=" .env; then
+                    echo "$var=" >> .env
+                fi
+            fi
+        done
+        
+        echo
+        echo "✅ Created .env file with detected variables"
+        echo "⚠️  Please fill in the values for each environment variable in .env"
+    else
+        echo "❌ No environment variables found in the project."
+    fi
     exit 0
 fi
