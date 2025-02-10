@@ -1112,6 +1112,13 @@ if [[ "$1" == "--env" ]]; then
     echo "🔖 Version: $PKG_VERSION"
     echo
 
+    # Check if project uses Prisma
+    HAS_PRISMA=false
+    if [[ -f "prisma/schema.prisma" ]] || grep -q '"prisma"' package.json; then
+        HAS_PRISMA=true
+        echo "🔍 Detected Prisma in project"
+    fi
+
     echo "🔍 Starting deep scan for environment variables in $DIR ..."
     
     # Start the scan in background and capture PID
@@ -1141,8 +1148,8 @@ if [[ "$1" == "--env" ]]; then
             -not -name "*.min.*" \
             -not -name "*.map" \
             -type f -exec file {} \; | grep 'text\|ASCII' | cut -d: -f1 | \
-            xargs grep -Eho -H '\b[A-Z_][A-Z0-9_]*=|\$[A-Z_][A-Z0-9_]*|\$\{[A-Z_][A-Z0-9_]*\}|process\.env\.[A-Z_][A-Z0-9_]*|configService\.get\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)' 2>/dev/null | \
-            sed -E 's/^([^:]+):(configService\.get\(['"'"'"]|configService\.get\(['"'"'"]\)|['"'"'"]\)|\$|\$\{|\}$|process\.env\.|=)/\1:/g')
+            xargs grep -Eho -H '\b[A-Z_][A-Z0-9_]*=|\$[A-Z_][A-Z0-9_]*|\$\{[A-Z_][A-Z0-9_]*\}|process\.env\.[A-Z_][A-Z0-9_]*|configService\.get\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)|this\.configService\.get<string>\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)|@ConfigService\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)|@Env\(['"'"'"][A-Z_][A-Z0-9_]*['"'"'"]\)' 2>/dev/null | \
+            sed -E 's/^([^:]+):(this\.configService\.get<string>\(['"'"'"]|@ConfigService\(['"'"'"]|@Env\(['"'"'"]|configService\.get\(['"'"'"]|configService\.get\(['"'"'"]\)|['"'"'"]\)|\$|\$\{|\}$|process\.env\.|=)/\1:/g')
 
         echo "$ENV_VARS_WITH_FILES" > /tmp/env_scan_results
     } & 
@@ -1168,18 +1175,29 @@ if [[ "$1" == "--env" ]]; then
             if [[ -n "$file" && -n "$var" ]]; then
                 echo "📄 $file:"
                 echo "   - $var"
-                # Only add to .env if not already present
+                # Add to .env if not already present
                 if ! grep -q "^$var=" .env; then
                     echo "$var=" >> .env
                 fi
             fi
         done
+
+        # Add DATABASE_URL if Prisma is detected and not already present
+        if [[ "$HAS_PRISMA" = true ]] && ! grep -q "^DATABASE_URL=" .env; then
+            echo "DATABASE_URL=" >> .env
+            echo "📝 Added DATABASE_URL for Prisma configuration"
+        fi
         
         echo
         echo "✅ Created .env file with detected variables"
         echo "⚠️  Please fill in the values for each environment variable in .env"
     else
         echo "❌ No environment variables found in the project."
+        # Create .env with DATABASE_URL only if Prisma is detected
+        if [[ "$HAS_PRISMA" = true ]]; then
+            echo "DATABASE_URL=" > .env
+            echo "✅ Created .env file with DATABASE_URL for Prisma configuration"
+        fi
     fi
     exit 0
 fi
